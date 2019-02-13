@@ -1,12 +1,15 @@
 import org.apache.poi.hssf.OldExcelFormatException;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ExcelUtils {
 
@@ -118,12 +121,13 @@ public class ExcelUtils {
     }
 
 
-    public static Workbook getWorkBook(String excelType, String path) throws IOException, InvalidFormatException {
+    public static Workbook getWorkBook(String path) throws IOException, InvalidFormatException {
         File file  = new File(path);  //目标Excel文件
         File parent = new File(file.getParent());  //Excel的父文件夹
         if (!parent.exists()){  //判断父文件夹是否存在
             parent.mkdirs();  //建立父文件夹
         }
+
         Workbook wb = null;
         if(file.exists()){  //如果文件存在
             wb = WorkbookFactory.create(file);  //打开文件
@@ -137,18 +141,12 @@ public class ExcelUtils {
             } else {
                 new Exception(path + "后缀名错误!");
             }
-            try (OutputStream fileOut = new FileOutputStream(path)) {    //获取文件流
-                wb.write(fileOut);   //将workbook写入文件流
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
         /*获取表单总数*/
         int sheetCount = wb.getNumberOfSheets();
         /*获取某一表单总行数*/
-        Sheet sheet = wb.getSheetAt(0);
+        Sheet sheet = wb.createSheet();
+        //Sheet sheet = wb.getSheetAt(0);
         System.out.println("表单数:"+sheetCount);
         System.out.println("第一行索引:"+sheet.getFirstRowNum());
         System.out.println("最后一行索引"+sheet.getLastRowNum());
@@ -160,7 +158,8 @@ public class ExcelUtils {
                 cell.setCellValue("格"+i + j);
             }
         }
-        try  (OutputStream fileOut = new FileOutputStream(path)) {    //获取文件流
+        try  (OutputStream fileOut = new FileOutputStream(file)) {    //获取文件流
+            fileOut.flush();
             wb.write(fileOut);   //将workbook写入文件流
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -171,15 +170,14 @@ public class ExcelUtils {
     }
 
     //创建一个不存在的excel文件
-    private static Workbook createWorkbookIfNotExist(String fileName) throws Exception {
+    private static Workbook createNewWorkbookIfNotExist(String fileName) throws Exception {
         Workbook wb = null;
-
         if(fileName.endsWith(".xls")) {
             wb = new HSSFWorkbook();
         } else if(fileName.endsWith(".xlsx")) {
             wb = new XSSFWorkbook();
         } else {
-            throw new Exception("文件类型错误！");
+            throw new Exception("文件类型错误！既不是.xls也不是.xlsx");
         }
 
         try{
@@ -202,9 +200,9 @@ public class ExcelUtils {
         try{
             input = new FileInputStream(fileName);
             wb = WorkbookFactory.create(input);
-        } catch(FileNotFoundException e) {
-            System.out.println("要打开的文件不存在，正试图创建该文件，请稍后……！");
-            wb = createWorkbookIfNotExist(fileName);
+            if (!new File(fileName).exists()){  //如果不存在
+                wb = createNewWorkbookIfNotExist(fileName);   //创建新的
+            }
         } catch(OldExcelFormatException e) {
             System.out.println("文件打开失败，原因：要打开的Excel文件版本过低！");
             throw new OldExcelFormatException("文件版本过低");
@@ -255,6 +253,65 @@ public class ExcelUtils {
         return cell;
     }
 
+    /**
+     * 追加到已有excel
+     * @param dataList 数据
+     * @param name 文件名
+     */
+
+    public static void addExcel(List<LinkedHashMap<String,Object>> dataList, String name) throws IOException {
+        FileInputStream fileInputStream=new FileInputStream("d://"+name+".xls");  //获取d://test.xls,建立数据的输入通道
+        POIFSFileSystem poifsFileSystem=new POIFSFileSystem(fileInputStream);  //使用POI提供的方法得到excel的信息
+        HSSFWorkbook Workbook=new HSSFWorkbook(poifsFileSystem);//得到文档对象
+        HSSFSheet sheet=Workbook.getSheet(name);  //根据name获取sheet表
+        HSSFCellStyle cellStyle = Workbook.createCellStyle();
+        /*cellStyle.setBorderBottom(HSSFCellStyle.BORDER_THIN); //下边框
+        cellStyle.setBorderLeft(HSSFCellStyle.BORDER_THIN);//左边框
+        cellStyle.setBorderTop(HSSFCellStyle.BORDER_THIN);//上边框
+        cellStyle.setBorderRight(HSSFCellStyle.BORDER_THIN);//右边框
+        cellStyle.setAlignment(HSSFCellStyle.ALIGN_CENTER); // 居中*/
+        // HSSFRow row=sheet.getRow(0);  //获取第一行
+        System.out.println("最后一行的行号 :"+sheet.getLastRowNum() + 1);  //分别得到最后一行的行号，和第3条记录的最后一个单元格
+        //System.out.println("最后一个单元格 :"+row.getLastCellNum());  //分别得到最后一行的行号，和第3条记录的最后一个单元格
+        // HSSFRow startRow=sheet.createRow((short)(sheet.getLastRowNum()+1)); // 追加开始行
+        // -----------------追加数据-------------------
+        int start = sheet.getLastRowNum() + 1; //插入数据开始行
+        for (int i = 0; i < dataList.size(); i++){
+            HSSFRow startRow = sheet.createRow(i+start);
+            AtomicInteger j = new AtomicInteger();
+            LinkedHashMap<String ,Object> ltem = dataList.get(i);
+
+        }
+        // 输出Excel文件
+        FileOutputStream out=new FileOutputStream("d://"+name+".xls");  //向d://test.xls中写数据
+        out.flush();
+        Workbook.write(out);
+        out.close();
+    }
+
+    public static void readExcel(String name) throws IOException {
+        FileInputStream fileInputStream=new FileInputStream("d:\\"+name+".xls");  //获取d://test.xls,建立数据的输入通道
+        POIFSFileSystem poifsFileSystem=new POIFSFileSystem(fileInputStream);  //使用POI提供的方法得到excel的信息
+        HSSFWorkbook Workbook=new HSSFWorkbook(poifsFileSystem);//得到文档对象
+        HSSFSheet sheet=Workbook.getSheet(name);  //根据name获取sheet表
+        HSSFRow row=sheet.getRow(1);  //获取第二行（第一行一般是标题）
+        int lastRow = sheet.getLastRowNum(); // 返回的是值从0开始的
+        System.out.println("总行数：" + (lastRow + 1));
+        int lastCell = row.getLastCellNum(); // 返回的值是从1开始的.....
+        System.out.println("总列数：" + lastCell);
+
+        for (int i = 0; i <= lastRow; i++){
+            row=sheet.getRow(i);
+            if (row != null){
+                for (int j = 0; j < lastCell; j++){
+                    HSSFCell cell  = row.getCell(j);
+                    if (cell != null) System.out.println(cell.getStringCellValue());
+                }
+            }
+
+        }
+    }
+
 
     public static void main(String[] args) throws IOException, InvalidFormatException {
         /*List headList = new ArrayList();
@@ -270,6 +327,6 @@ public class ExcelUtils {
         dataList.add(cols);
         boolean result = createExcel(null,"sheet2",headList,dataList,"D:\\logs\\text.xls");*/
 
-        getWorkBook(null,"D:\\logs\\text2.xls");
+        getWorkBook("D:\\logs\\text2.xls");
     }
 }
