@@ -65,6 +65,6 @@ public class CommonTool {
     }
 
     public static void main(String[] args) throws Exception {
-        baidu("[《中国人民志愿军战歌》激昂慷慨,节奏铿锵有, 力,使人真切地感受到志愿军战士们昂扬的斗志和, 钢铁一般的意志。这首歌的词作者是]");
+        baidu("java");
     }
 }
