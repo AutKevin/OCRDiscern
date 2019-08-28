@@ -1,3 +1,5 @@
+package com.autumn.tool;
+
 import org.apache.poi.hssf.OldExcelFormatException;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -258,7 +260,6 @@ public class ExcelUtils {
      * @param dataList 数据
      * @param name 文件名
      */
-
     public static void addExcel(List<LinkedHashMap<String,Object>> dataList, String name) throws IOException {
         FileInputStream fileInputStream=new FileInputStream("d://"+name+".xls");  //获取d://test.xls,建立数据的输入通道
         POIFSFileSystem poifsFileSystem=new POIFSFileSystem(fileInputStream);  //使用POI提供的方法得到excel的信息
