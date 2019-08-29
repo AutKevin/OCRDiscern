@@ -64,6 +64,65 @@ public class CommonTool {
         }
     }
 
+    /**
+     * adb截图到sd卡
+     * @param imgPath
+     * @return
+     */
+    public static Process adbScreencap(String imgPath){
+        if (imgPath==null||imgPath.isEmpty()){
+            imgPath = "/sdcard/screenshot.png";
+        }
+
+        Process screenshot = null;
+        try {
+            screenshot = Runtime.getRuntime().exec("adb shell /system/bin/screencap -p "+imgPath);
+            screenshot.waitFor();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return screenshot;
+    }
+
+
+    /**
+     * adb将sd卡中的截图pull到电脑
+     * @param imgPath
+     * @return
+     */
+    public static Process adbPullScreencap(String screencapPath,String imgPath) {
+        if (screencapPath==null||screencapPath.isEmpty()){
+            screencapPath = "/sdcard/screenshot.png";
+        }
+
+        if (imgPath==null||imgPath.isEmpty()){
+            imgPath = "D:/logs/screenshot.png";
+        }
+
+        Process pullImg = null;
+        try {
+            pullImg = Runtime.getRuntime().exec("adb pull "+ screencapPath +" "+imgPath);
+            pullImg.waitFor();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return pullImg;
+    }
+
+    /**
+     * 先截图再pull下来
+     * @param imgPath
+     * @return
+     */
+    public static void adbScreencapAndPull(String imgPath,String pcPath) {
+        adbScreencap(imgPath);
+        adbPullScreencap(imgPath,pcPath);
+    }
+
     public static void main(String[] args) throws Exception {
         baidu("java");
     }

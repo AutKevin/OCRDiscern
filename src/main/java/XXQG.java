@@ -42,16 +42,23 @@ public class XXQG {
             // 可选：设置log4j日志输出格式，若不设置，则使用默认配置
             // 也可以直接通过jvm启动参数设置此环境变量
             System.setProperty("aip.log4j.conf", "classpath:log4j.properties");
+
             Process screenshot = Runtime.getRuntime().exec("adb shell /system/bin/screencap -p /sdcard/screenshot.png");
             //等待程序启动
             //Thread.sleep(1000);
             screenshot.waitFor();
             Process pullImg = Runtime.getRuntime().exec("adb pull /sdcard/screenshot.png D:/logs/screenshot.png");
-            pullImg.waitFor();
-            // 调用接口
+
+            //将图片拉取到本地
             String path = "D:\\logs\\screenshot.png";
-            CommonTool.cutImage(path, path, 45, 300, 634, 175);
-            JSONObject res = client.basicGeneral(path, new HashMap<String, String>());
+            CommonTool.adbScreencapAndPull(null,path);
+
+            //截图
+            String destpath = "D:\\logs\\screenshot_result.png";
+            CommonTool.cutImage(path, destpath, 45, 300, 634, 175);
+
+            // 调用百度识别接口
+            JSONObject res = client.basicGeneral(destpath, new HashMap<String, String>());
 
             /**
              * 获取识别结果
@@ -70,6 +77,7 @@ public class XXQG {
             System.out.println("log_id: " + log_id);
             System.out.println("words_result_num: " + words_result_num);
             System.out.println("words: " + words.toString());
+
             CommonTool.baidu(words.toString().replaceAll(" ",""));
         } catch (InterruptedException e) {
             e.printStackTrace();
