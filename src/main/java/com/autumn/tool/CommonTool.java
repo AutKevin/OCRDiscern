@@ -6,25 +6,44 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Administrator on 2019/8/28.
  */
 public class CommonTool {
+
+    /*本地chrome 安装地址*/
     static String chromePath = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
 
     /**
-     * 用浏览器百度查询信息
-     * @param wd
+     * 打开chrome浏览器
+     * @param httpurl http地址
      * @throws IOException
      */
-    public static void baidu(String wd) throws IOException {
-        Runtime.getRuntime().exec(chromePath+" www.baidu.com/s?wd="+wd);
+    public static void chrome(String httpurl) throws IOException {
+        Runtime.getRuntime().exec(chromePath+" "+httpurl);
+    }
+
+    //关键字转为百度url
+    public static String baiduUrl(String wd) {
+        return "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd="+wd+"&rsv_pq=d82ed2fe000170e0&rsv_t=185cMvh60YJ0ntaMJR8kRDD6cHo4WjUX4pZ7WW9ikzgTb7VX4jfkzzJkgck&rqlang=cn&rsv_enter=1&rsv_dl=tb&rsv_sug3=5&rsv_sug1=1&rsv_sug7=100&rsv_sug2=0&inputT=641&rsv_sug4=1458";
+    }
+
+    /**
+     * xxqg查询库
+     * https://xuexi1905.cn
+     * @param wd
+     * @return
+     */
+    public static String xxqgUrl(String wd) {
+        return "https://doc.deeract.com/l2s/api/questions?keyword="+wd;
     }
 
     /**
@@ -61,6 +80,8 @@ public class CommonTool {
             ImageIO.write(bi, "png", new File(dest));
         }catch (IOException e){
             System.err.println("裁剪图片失败");
+        }catch (IllegalArgumentException e){
+            System.err.println("裁剪图片区域不正确");
         }
     }
 
@@ -123,7 +144,96 @@ public class CommonTool {
         adbPullScreencap(imgPath,pcPath);
     }
 
+    /**
+     * 模拟http协议发送get请求
+     **/
+    public static String sendGetRequest(String url) {
+        String result = "";
+        InputStream in = null;
+
+        HttpURLConnection connection = null;
+
+        try {
+            URL httpUrl = new URL(url);
+            connection = (HttpURLConnection) httpUrl.openConnection();
+            connection.setRequestProperty("accept", "*/*");
+            connection.setRequestProperty("Charset", "UTF-8");
+            connection.setRequestProperty("connection", "Keep-Alive");
+            connection.setRequestProperty("user-agent",
+                    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+            connection.setRequestMethod("GET");
+            connection.connect();
+
+            if (connection.getResponseCode() == 200) {
+                in = connection.getInputStream();
+
+                ByteArrayOutputStream bs = new ByteArrayOutputStream();
+                int n = 0;
+                byte[] datas = new byte[2048];
+
+                while ((n = in.read(datas)) != -1) {
+                    bs.write(datas, 0, n);
+                }
+
+                bs.flush();
+                result = new String(bs.toByteArray(), "utf-8");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                connection.disconnect();
+            } catch (Exception ex) {
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 统计str在contentStr中出现的次数
+     * @param contentStr
+     * @param str
+     * @return
+     */
+    public static int strCountInContent(String contentStr,String str) {
+        int count = 0;   //出现次数
+        int start = 0;  //开始位置
+        while (contentStr.indexOf(str, start) >= 0 && start < contentStr.length()) {
+            count++;
+            start = contentStr.indexOf(str, start) + str.length();
+        }
+        return count;
+    }
+
+    /**
+     * 获取字符串content第一个中文部分
+     * @param content
+     * @return
+     */
+    public static String subFirstCN(String content){
+        String regex = "[\u4e00-\u9fa5]+";
+        Pattern  pattern= Pattern.compile(regex);
+        Matcher ma = pattern.matcher(content);
+        /*if(ma.find()){
+            System.out.println(ma.group(0));
+        }*/
+        ma.find();
+        String result = ma.group(0);
+        return result;
+    }
+
     public static void main(String[] args) throws Exception {
-        baidu("java");
+        //baidu("java");
+        //System.out.println(sendGetRequest("https://www.cnblogs.com/aeolian/p/7746158.html"));
+
     }
 }
