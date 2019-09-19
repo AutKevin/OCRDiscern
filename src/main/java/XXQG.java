@@ -71,9 +71,9 @@ public class XXQG {
                 words.add(wd);
             }
 
-            System.out.println("log_id: " + log_id);
+            /*System.out.println("log_id: " + log_id);
             System.out.println("words_result_num: " + words_result_num);
-            System.out.println("words: " + words.toString());
+            System.out.println("words: " + words.toString());*/
 
             //OCR识别 答案
             JSONObject res_a = client.basicGeneral(destpath_answer, new HashMap<String, String>());
@@ -88,10 +88,9 @@ public class XXQG {
                 words_a.add(wd);
             }
 
-            System.out.println("log_id_a: " + log_id_a);
+            /*System.out.println("log_id_a: " + log_id_a);
             System.out.println("words_result_num_a: " + words_result_num_a);
-            System.out.println("words_a: " + words_a.toString());
-
+            System.out.println("words_a: " + words_a.toString());*/
 
             /*分析结果*/
             //获取关键词
@@ -105,7 +104,7 @@ public class XXQG {
             System.err.println("搜索关键词:"+firstCN);
 
             //利用chrome搜索学习强国答案
-            //CommonTool.chrome(CommonTool.xxqgUrl(firstCN));
+            CommonTool.chrome(CommonTool.xxqgUrl(firstCN));
 
             //根据关键词拼接答案库
             String answerLibUrl = CommonTool.xxqgUrl(firstCN);
@@ -131,7 +130,6 @@ public class XXQG {
                 }
                 System.out.println(s+"出现次数为： "+count);
             }
-
             System.err.println("------------答案为: "+maxStr+" (" + maxValue+"次)");
 
         } catch (Exception e) {
