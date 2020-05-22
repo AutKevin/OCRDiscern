@@ -43,7 +43,8 @@ public class CommonTool {
      * @return
      */
     public static String xxqgUrl(String wd) {
-        return "https://doc.deeract.com/l2s/api/questions?keyword="+wd;
+        //return "https://doc.deeract.com/l2s/api/questions?keyword="+wd;
+        return "https://xxqg.achanyao.com?keyword="+wd;
     }
 
     /**

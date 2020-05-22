@@ -11,6 +11,9 @@ import static com.autumn.tool.CommonTool.baiduUrl;
 
 /**
  * xxqg tzdt
+ * adb tcpip 5555
+ * 雷神:   adb connect 127.0.0.1:5555
+ * adb devices
  */
 public class XXQG {
     //设置APPID/AK/SK
@@ -71,6 +74,10 @@ public class XXQG {
                 words.add(wd);
             }
 
+            /*根据题目去题库中搜索*/
+            CommonTool.chrome(CommonTool.xxqgUrl(words.toString().replaceAll("\\[","").replaceAll("\\]","")));
+
+
             /*System.out.println("log_id: " + log_id);
             System.out.println("words_result_num: " + words_result_num);
             System.out.println("words: " + words.toString());*/
@@ -104,7 +111,7 @@ public class XXQG {
             System.err.println("搜索关键词:"+firstCN);
 
             //利用chrome搜索学习强国答案
-            CommonTool.chrome(CommonTool.xxqgUrl(firstCN));
+            //CommonTool.chrome(CommonTool.xxqgUrl(firstCN));
 
             //根据关键词拼接答案库
             String answerLibUrl = CommonTool.xxqgUrl(firstCN);
